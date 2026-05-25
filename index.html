@@ -608,8 +608,8 @@
     background: var(--bg-card);
     border-radius: 8px;
     opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    transform: translateY(-32px);
+    transition: opacity 0.55s ease-out, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
     border-left: 4px solid transparent;
     box-shadow: var(--paper-shadow);
   }
@@ -1209,44 +1209,43 @@ function showRanking() {
   const list = document.getElementById("rankingList");
   list.innerHTML = "";
 
-  sorted.forEach((t, i) => {
-    const rank = ranks[i];
-    const row = document.createElement("div");
-    row.className = "rank-row r" + rank;
-    row.innerHTML = `
-      <div class="rank-num">${rank}</div>
-      <div class="rank-color" style="background:${t.color}"></div>
-      <div class="rank-name">${escapeHtml(t.name)}</div>
-      <div class="rank-score">${t.total}<span style="font-size:0.5em;opacity:0.7;margin-left:3px;">pt</span></div>
-    `;
-    list.appendChild(row);
-  });
-
   showScreen("ranking");
 
-  // Scroll the screen to bottom so the last-place row is visible first
   const screen = document.getElementById("screen-ranking");
-  requestAnimationFrame(() => {
-    screen.scrollTop = screen.scrollHeight;
-  });
+  screen.scrollTop = 0;
 
-  // Reveal from last place to first
-  const rows = Array.from(list.children).reverse();
-  const stepMs = Math.max(600, Math.min(1200, 10000 / rows.length));
+  // Reveal worst-rank first; each new row is inserted at the TOP of the list
+  // so previously revealed rows are pushed down. Final layout: 1 at top, last at bottom.
+  const revealOrder = sorted.map((_, i) => i).reverse(); // [lastIdx, ..., bestIdx]
+  const stepMs = Math.max(700, Math.min(1300, 11000 / revealOrder.length));
 
-  rows.forEach((row, i) => {
+  revealOrder.forEach((origIdx, n) => {
     setTimeout(() => {
-      row.classList.add("revealed");
-      // Scroll smoothly so the revealing row is visible
-      row.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, i * stepMs);
+      const t = sorted[origIdx];
+      const rank = ranks[origIdx];
+      const row = document.createElement("div");
+      row.className = "rank-row r" + rank;
+      row.innerHTML = `
+        <div class="rank-num">${rank}</div>
+        <div class="rank-color" style="background:${t.color}"></div>
+        <div class="rank-name">${escapeHtml(t.name)}</div>
+        <div class="rank-score">${t.total}<span style="font-size:0.5em;opacity:0.7;margin-left:3px;">pt</span></div>
+      `;
+      // Insert at the top so newest reveal is directly below the title
+      list.insertBefore(row, list.firstChild);
+      // Keep viewport anchored to the title/top so the new row is always visible
+      screen.scrollTo({ top: 0, behavior: "auto" });
+      // Trigger the fade/slide-down animation
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        row.classList.add("revealed");
+      }));
+    }, n * stepMs);
   });
 
   setTimeout(() => {
-    // Final scroll to top to show #1
     screen.scrollTo({ top: 0, behavior: "smooth" });
     celebrate(true);
-  }, rows.length * stepMs + 200);
+  }, revealOrder.length * stepMs + 400);
 }
 
 // ============================================================

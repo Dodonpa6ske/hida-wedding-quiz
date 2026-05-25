@@ -3,25 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>結婚式２次会 クイズ大会 結果発表</title>
+<title>クイズ大会 結果発表</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg-1: #0d0518;
-    --bg-2: #2d1338;
-    --gold: #d4af37;
-    --gold-bright: #f5d670;
-    --text: #fff;
-    --panel-border: rgba(212,175,55,0.4);
+    --bg-main: #fbf8f3;
+    --bg-card: #ffffff;
+    --paper-shadow: 0 4px 20px rgba(44,21,56,0.06), 0 1px 3px rgba(44,21,56,0.04);
+    --text: #2c1538;
+    --text-mid: #6b5b73;
+    --text-light: #a59aad;
+    --accent: #b8860b;
+    --accent-bright: #d4af37;
+    --accent-soft: #e8d795;
+    --rose: #8b1538;
+    --border: rgba(44,21,56,0.12);
+    --border-soft: rgba(44,21,56,0.06);
   }
 
   html, body {
     height: 100%;
     width: 100%;
-    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", -apple-system, BlinkMacSystemFont, sans-serif;
-    background: radial-gradient(ellipse at top, var(--bg-2) 0%, var(--bg-1) 70%);
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "游明朝", "Hiragino Sans", "Yu Gothic", "Meiryo", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(180deg, #ffffff 0%, #faf6ef 100%);
     color: var(--text);
     overflow: hidden;
   }
@@ -38,6 +44,7 @@
     justify-content: center;
     padding: 24px;
     animation: fadeIn 0.5s ease-out;
+    overflow-y: auto;
   }
   .screen.active { display: flex; }
   @keyframes fadeIn {
@@ -45,20 +52,52 @@
     to { opacity: 1; }
   }
 
+  /* ===== Editable title ===== */
   h1.brand {
-    font-size: clamp(20px, 2.4vw, 32px);
-    letter-spacing: 0.25em;
-    color: var(--gold-bright);
-    text-shadow: 0 0 24px rgba(245,214,112,0.4);
-    font-weight: 300;
+    font-size: clamp(22px, 2.8vw, 36px);
+    letter-spacing: 0.18em;
+    color: var(--text);
+    font-weight: 500;
     text-align: center;
+    margin-bottom: 4px;
+    padding: 4px 16px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    position: relative;
+    outline: none;
+  }
+  h1.brand[contenteditable="true"]:hover {
+    background: rgba(184,134,11,0.08);
+  }
+  h1.brand[contenteditable="true"]:focus {
+    background: rgba(184,134,11,0.12);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+  .brand-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     margin-bottom: 8px;
   }
+  .edit-hint {
+    font-size: 11px;
+    color: var(--text-light);
+    opacity: 0.5;
+    margin-top: 2px;
+    text-align: center;
+    letter-spacing: 0.1em;
+  }
+  .brand-divider {
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    margin: 8px auto 0;
+  }
   .brand-sub {
-    font-size: 12px;
-    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    color: var(--text-light);
     letter-spacing: 0.4em;
-    margin-bottom: 32px;
+    margin: 12px 0 32px;
     text-align: center;
   }
 
@@ -66,8 +105,8 @@
   button, .button {
     font-family: inherit;
     padding: 10px 20px;
-    border: 1px solid var(--panel-border);
-    background: rgba(212,175,55,0.12);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
     color: var(--text);
     border-radius: 8px;
     cursor: pointer;
@@ -76,29 +115,34 @@
     transition: all 0.2s;
     text-decoration: none;
     display: inline-block;
+    box-shadow: 0 1px 3px rgba(44,21,56,0.04);
   }
   button:hover, .button:hover {
-    background: rgba(212,175,55,0.28);
+    background: #fafafa;
+    border-color: var(--accent);
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(44,21,56,0.08);
   }
   button.primary {
-    background: linear-gradient(135deg, var(--gold), var(--gold-bright));
-    color: #2d1338;
-    font-weight: 700;
-    border-color: var(--gold-bright);
+    background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+    color: #ffffff;
+    font-weight: 600;
+    border-color: var(--accent);
+    text-shadow: 0 1px 1px rgba(0,0,0,0.15);
   }
   button.primary:hover {
-    box-shadow: 0 6px 24px rgba(245,214,112,0.5);
+    background: linear-gradient(135deg, #c8930e, #e0bb45);
+    box-shadow: 0 6px 24px rgba(184,134,11,0.35);
   }
   button.big {
-    padding: 18px 48px;
+    padding: 18px 56px;
     font-size: 22px;
     border-radius: 12px;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.18em;
   }
   button.ghost {
     background: transparent;
-    border-color: rgba(255,255,255,0.2);
+    color: var(--text-mid);
   }
 
   /* ===== Floating restart ===== */
@@ -109,7 +153,7 @@
     z-index: 1000;
     padding: 6px 12px;
     font-size: 12px;
-    opacity: 0.4;
+    opacity: 0.6;
     transition: opacity 0.2s;
   }
   #restartBtn:hover { opacity: 1; }
@@ -119,15 +163,16 @@
   #screen-upload .upload-zone {
     width: min(640px, 90vw);
     padding: 40px;
-    border: 2px dashed rgba(212,175,55,0.5);
+    border: 2px dashed var(--accent-soft);
     border-radius: 16px;
-    background: rgba(255,255,255,0.03);
+    background: var(--bg-card);
     text-align: center;
     transition: all 0.2s;
+    box-shadow: var(--paper-shadow);
   }
   #screen-upload .upload-zone.dragover {
-    border-color: var(--gold-bright);
-    background: rgba(245,214,112,0.1);
+    border-color: var(--accent);
+    background: #fffbf2;
     transform: scale(1.02);
   }
   .upload-icon {
@@ -136,12 +181,12 @@
   }
   .upload-text {
     font-size: 18px;
-    color: rgba(255,255,255,0.9);
+    color: var(--text);
     margin-bottom: 8px;
   }
   .upload-sub {
     font-size: 13px;
-    color: rgba(255,255,255,0.5);
+    color: var(--text-light);
     margin-bottom: 24px;
   }
   .upload-actions {
@@ -154,17 +199,17 @@
   .upload-format {
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    border-top: 1px solid var(--border-soft);
     font-size: 12px;
-    color: rgba(255,255,255,0.55);
+    color: var(--text-mid);
     text-align: left;
     line-height: 1.7;
   }
   .upload-format code {
-    background: rgba(0,0,0,0.4);
+    background: #f5efe2;
     padding: 2px 6px;
     border-radius: 3px;
-    color: var(--gold-bright);
+    color: var(--accent);
     font-family: monospace;
     font-size: 11px;
   }
@@ -175,21 +220,21 @@
     font-size: 11px;
   }
   .upload-format th, .upload-format td {
-    border: 1px solid rgba(255,255,255,0.15);
+    border: 1px solid var(--border);
     padding: 4px 8px;
     text-align: center;
   }
   .upload-format th {
-    background: rgba(212,175,55,0.15);
-    color: var(--gold-bright);
+    background: #faf2dd;
+    color: var(--accent);
   }
   .upload-error {
     margin-top: 16px;
     padding: 10px 14px;
-    background: rgba(239,68,68,0.2);
-    border: 1px solid rgba(239,68,68,0.5);
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
     border-radius: 6px;
-    color: #fca5a5;
+    color: #b91c1c;
     font-size: 13px;
   }
 
@@ -199,97 +244,180 @@
     text-align: center;
   }
   .loading-text {
-    font-size: 14px;
-    color: rgba(255,255,255,0.7);
-    letter-spacing: 0.2em;
+    font-size: 13px;
+    color: var(--text-mid);
+    letter-spacing: 0.3em;
     margin-bottom: 20px;
   }
   .loading-bar {
     width: 100%;
-    height: 12px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 6px;
+    height: 10px;
+    background: #f0e6d2;
+    border-radius: 5px;
     overflow: hidden;
-    border: 1px solid rgba(212,175,55,0.3);
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
   .loading-bar-fill {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, var(--gold), var(--gold-bright));
-    box-shadow: 0 0 16px var(--gold);
+    background: linear-gradient(90deg, var(--accent), var(--accent-bright));
     transition: width 0.1s linear;
   }
   .loading-percent {
-    font-size: 42px;
-    font-weight: 700;
+    font-size: 38px;
+    font-weight: 600;
     font-family: "Helvetica Neue", monospace;
-    color: var(--gold-bright);
+    color: var(--accent);
     letter-spacing: 0.05em;
   }
 
-  /* ===== Screen 3: Ready ===== */
-  .ready-info {
+  /* ===== Screen 3: Confirm (score preview) ===== */
+  #screen-confirm { padding: 32px 24px; justify-content: flex-start; }
+  .confirm-header {
     text-align: center;
-    margin-bottom: 32px;
-    color: rgba(255,255,255,0.7);
-    font-size: 15px;
+    margin-bottom: 16px;
+  }
+  .confirm-title {
+    font-size: 22px;
+    color: var(--text);
+    letter-spacing: 0.2em;
+    margin-bottom: 4px;
+  }
+  .confirm-sub {
+    font-size: 11px;
+    color: var(--text-light);
+    letter-spacing: 0.3em;
+  }
+  .confirm-info {
+    text-align: center;
+    margin: 12px 0 20px;
+    color: var(--text-mid);
+    font-size: 14px;
     letter-spacing: 0.1em;
   }
-  .ready-info .num {
-    color: var(--gold-bright);
+  .confirm-info .num {
+    color: var(--accent);
     font-size: 22px;
     font-weight: 700;
     margin: 0 6px;
+    font-family: "Helvetica Neue", sans-serif;
   }
-  .ready-preview {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 8px;
-    width: min(900px, 90vw);
-    margin-bottom: 36px;
-    max-height: 42vh;
-    overflow-y: auto;
-    padding: 4px;
-  }
-  .preview-team {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255,255,255,0.05);
-    padding: 8px 10px;
-    border-radius: 6px;
-    border-left: 4px solid;
-  }
-  .preview-team .name {
+  .confirm-table-wrap {
     flex: 1;
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    width: min(960px, 94vw);
+    overflow-y: auto;
+    background: var(--bg-card);
+    border-radius: 10px;
+    box-shadow: var(--paper-shadow);
+    margin-bottom: 20px;
   }
-  .preview-team .score {
+  .confirm-table {
+    width: 100%;
+    border-collapse: collapse;
     font-size: 13px;
-    color: var(--gold-bright);
+  }
+  .confirm-table th, .confirm-table td {
+    padding: 10px 12px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .confirm-table th {
+    background: #faf5e8;
+    color: var(--accent);
     font-weight: 600;
-    font-family: monospace;
+    letter-spacing: 0.1em;
+    position: sticky;
+    top: 0;
+    z-index: 1;
   }
-  .ready-actions {
+  .confirm-table td.team-name {
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .confirm-table td.team-color {
+    width: 8px;
+    padding: 0;
+  }
+  .confirm-table td.team-color .swatch {
+    width: 8px;
+    height: 32px;
+    margin: 0 auto;
+    border-radius: 2px;
+  }
+  .confirm-table td.total {
+    font-weight: 700;
+    color: var(--accent);
+    font-family: "Helvetica Neue", monospace;
+    font-size: 15px;
+    background: #fdfaf0;
+  }
+  .confirm-actions {
     display: flex;
-    gap: 16px;
-    align-items: center;
+    gap: 12px;
+    justify-content: center;
   }
 
-  /* ===== Screen 4: Stacking ===== */
+  /* ===== Screen 4: Ready (just start button) ===== */
+  #screen-ready { gap: 28px; }
+  .ready-title {
+    font-size: clamp(24px, 3vw, 36px);
+    color: var(--text);
+    letter-spacing: 0.2em;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .ready-sub {
+    font-size: 12px;
+    color: var(--text-light);
+    letter-spacing: 0.5em;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .ready-deco {
+    font-size: 40px;
+    color: var(--accent);
+    opacity: 0.6;
+    letter-spacing: 0.4em;
+    margin-bottom: 32px;
+  }
+
+  /* ===== Screen 5: Stacking ===== */
   #screen-stacking { padding: 0; }
   .stacking-header {
     width: 100%;
     text-align: center;
-    padding: 14px 0 8px;
-    font-size: clamp(16px, 2vw, 24px);
-    letter-spacing: 0.3em;
-    color: var(--gold-bright);
+    padding: 16px 24px 10px;
     flex-shrink: 0;
+    position: relative;
+  }
+  .stacking-title {
+    font-size: 14px;
+    color: var(--text-light);
+    letter-spacing: 0.3em;
+    margin-bottom: 4px;
+  }
+  .stacking-question {
+    font-size: clamp(20px, 2.6vw, 32px);
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    font-weight: 600;
+    transition: opacity 0.3s, transform 0.3s;
+    font-family: "Helvetica Neue", sans-serif;
+  }
+  .stacking-question .q-num {
+    font-size: 1.4em;
+    color: var(--rose);
+    font-weight: 800;
+    margin: 0 6px;
+  }
+  .stacking-question.flash {
+    animation: qFlash 0.5s ease-out;
+  }
+  @keyframes qFlash {
+    0%   { transform: scale(0.7); opacity: 0; }
+    60%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
   }
   #stackingBoard {
     flex: 1;
@@ -310,8 +438,7 @@
     text-align: center;
     font-size: clamp(20px, 2.6vw, 42px);
     font-weight: 800;
-    color: var(--gold-bright);
-    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    color: var(--rose);
     font-family: "Helvetica Neue", monospace;
     margin-bottom: 6px;
     height: 1.2em;
@@ -320,11 +447,12 @@
   .stack-container {
     flex: 1;
     position: relative;
-    background: rgba(255,255,255,0.04);
+    background: #f7f1e3;
     border-radius: 4px;
     overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid var(--border-soft);
     min-height: 0;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
   }
   .stack {
     position: absolute;
@@ -333,16 +461,21 @@
     right: 0;
     display: flex;
     flex-direction: column-reverse;
+    padding: 2px;
+    gap: 2px;
   }
   .block {
     width: 100%;
     flex-shrink: 0;
-    animation: blockPopIn 0.18s ease-out;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.18);
+    animation: blockPopIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-radius: 2px;
+    border-top: 1px solid rgba(255,255,255,0.4);
+    border-bottom: 1px solid rgba(0,0,0,0.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
   }
   @keyframes blockPopIn {
-    from { transform: translateY(60%); opacity: 0.3; }
-    to   { transform: translateY(0);   opacity: 1; }
+    from { transform: translateY(80%) scale(0.9); opacity: 0; }
+    to   { transform: translateY(0) scale(1);    opacity: 1; }
   }
   .stack-name {
     margin-top: 6px;
@@ -350,6 +483,7 @@
     padding: 6px 2px 4px;
     font-size: clamp(10px, 1vw, 14px);
     font-weight: 600;
+    color: var(--text);
     border-top: 3px solid;
     white-space: nowrap;
     overflow: hidden;
@@ -357,13 +491,28 @@
     line-height: 1.2;
   }
 
-  /* ===== Screen 5: Top3 ===== */
+  /* ===== Screen 6: Top3 ===== */
+  #screen-top3 {
+    padding: 24px;
+    justify-content: flex-start;
+    overflow-y: auto;
+  }
+  .top3-title {
+    font-size: clamp(22px, 3vw, 36px);
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    margin: 12px 0 clamp(20px, 4vh, 48px);
+    text-align: center;
+    flex-shrink: 0;
+  }
   #top3Display {
     display: flex;
     align-items: flex-end;
     justify-content: center;
     gap: clamp(16px, 4vw, 60px);
     width: 100%;
+    flex: 1;
+    min-height: 0;
   }
   .podium-team {
     display: flex;
@@ -371,6 +520,7 @@
     align-items: center;
     text-align: center;
     animation: podiumIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    max-width: 30%;
   }
   .podium-team.p2 { animation-delay: 0.2s; }
   .podium-team.p3 { animation-delay: 0.4s; }
@@ -380,115 +530,133 @@
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
   .medal {
-    font-size: clamp(48px, 8vw, 96px);
+    font-size: clamp(40px, min(8vw, 12vh), 96px);
     margin-bottom: 8px;
-    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.5));
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
   }
-  .podium-team.p1 .medal { font-size: clamp(64px, 11vw, 140px); }
+  .podium-team.p1 .medal {
+    font-size: clamp(56px, min(11vw, 16vh), 130px);
+  }
   .podium-color {
-    width: clamp(40px, 6vw, 80px);
+    width: clamp(36px, 6vw, 80px);
     height: 8px;
     border-radius: 4px;
     margin-bottom: 14px;
   }
-  .podium-team.p1 .podium-color { height: 12px; width: clamp(60px, 8vw, 120px); }
+  .podium-team.p1 .podium-color {
+    height: 12px;
+    width: clamp(56px, 8vw, 120px);
+  }
   .podium-name {
-    font-size: clamp(20px, 3vw, 38px);
+    font-size: clamp(18px, min(3vw, 4vh), 36px);
     font-weight: 700;
-    color: #fff;
+    color: var(--text);
     margin-bottom: 8px;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
-    max-width: 36vw;
     word-break: keep-all;
+    line-height: 1.2;
   }
   .podium-team.p1 .podium-name {
-    font-size: clamp(28px, 4.5vw, 56px);
-    color: var(--gold-bright);
-    text-shadow: 0 0 30px rgba(245,214,112,0.5), 0 2px 12px rgba(0,0,0,0.6);
+    font-size: clamp(24px, min(4.5vw, 6vh), 52px);
+    color: var(--rose);
   }
   .podium-score {
-    font-size: clamp(22px, 3vw, 40px);
+    font-size: clamp(20px, min(3vw, 4vh), 38px);
     font-weight: 800;
     font-family: "Helvetica Neue", monospace;
-    color: var(--gold-bright);
+    color: var(--accent);
   }
   .podium-team.p1 .podium-score {
-    font-size: clamp(32px, 5vw, 64px);
+    font-size: clamp(28px, min(5vw, 7vh), 60px);
   }
 
-  /* ===== Screen 6: Ranking ===== */
-  #screen-ranking { padding: 40px 24px; justify-content: flex-start; padding-top: 6vh; }
+  /* ===== Screen 7: Ranking ===== */
+  #screen-ranking {
+    padding: 24px 24px 36px;
+    justify-content: flex-start;
+    overflow-y: auto;
+  }
   .ranking-title {
-    font-size: clamp(18px, 2.2vw, 28px);
+    font-size: clamp(20px, 2.6vw, 30px);
     letter-spacing: 0.3em;
-    color: var(--gold-bright);
-    margin-bottom: 24px;
+    color: var(--accent);
+    margin: 8px 0 20px;
     text-align: center;
+    flex-shrink: 0;
+  }
+  .ranking-list-wrap {
+    width: min(820px, 94vw);
+    padding: 8px 4px 24px;
   }
   .ranking-list {
-    width: min(820px, 92vw);
     display: flex;
     flex-direction: column;
     gap: 8px;
-    overflow: hidden;
   }
   .rank-row {
     display: grid;
     grid-template-columns: 56px 16px 1fr auto;
     gap: 14px;
     align-items: center;
-    padding: 10px 18px;
-    background: rgba(255,255,255,0.05);
+    padding: 12px 18px;
+    background: var(--bg-card);
     border-radius: 8px;
     opacity: 0;
     transform: translateY(30px);
     transition: opacity 0.5s ease-out, transform 0.5s ease-out;
     border-left: 4px solid transparent;
+    box-shadow: var(--paper-shadow);
   }
   .rank-row.revealed {
     opacity: 1;
     transform: translateY(0);
   }
   .rank-row.r1 {
-    background: linear-gradient(90deg, rgba(255,215,0,0.25), rgba(255,215,0,0.08));
-    box-shadow: 0 0 30px rgba(255,215,0,0.3);
+    background: linear-gradient(90deg, #fdf5d8, #ffffff);
+    border-left-color: var(--accent-bright);
+    padding: 16px 20px;
+    margin: 12px 0;
+    box-shadow: 0 6px 30px rgba(212,175,55,0.25);
   }
   .rank-row.r2 {
-    background: linear-gradient(90deg, rgba(192,192,192,0.2), rgba(192,192,192,0.05));
+    background: linear-gradient(90deg, #f5f5f5, #ffffff);
+    border-left-color: silver;
   }
   .rank-row.r3 {
-    background: linear-gradient(90deg, rgba(205,127,50,0.2), rgba(205,127,50,0.05));
+    background: linear-gradient(90deg, #fdf0e1, #ffffff);
+    border-left-color: #cd7f32;
   }
   .rank-num {
     font-size: 28px;
     font-weight: 800;
-    color: var(--gold-bright);
+    color: var(--accent);
     text-align: center;
     font-family: "Helvetica Neue", sans-serif;
   }
-  .rank-row.r1 .rank-num { color: gold; font-size: 34px; }
-  .rank-row.r2 .rank-num { color: silver; }
+  .rank-row.r1 .rank-num { color: var(--accent-bright); font-size: 36px; }
+  .rank-row.r2 .rank-num { color: #888; }
   .rank-row.r3 .rank-num { color: #cd7f32; }
   .rank-color {
     width: 16px;
     height: 36px;
     border-radius: 4px;
   }
+  .rank-row.r1 .rank-color { height: 44px; }
   .rank-name {
     font-size: 20px;
     font-weight: 600;
+    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .rank-row.r1 .rank-name { font-size: 26px; }
+  .rank-row.r1 .rank-name { font-size: 26px; color: var(--rose); }
   .rank-score {
     font-size: 22px;
     font-weight: 700;
-    color: var(--gold-bright);
+    color: var(--accent);
     font-family: "Helvetica Neue", monospace;
   }
-  .rank-row.r1 .rank-score { font-size: 28px; color: gold; }
+  .rank-row.r1 .rank-score { font-size: 30px; color: var(--accent-bright); }
 
   /* ===== Confetti ===== */
   .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
@@ -500,8 +668,12 @@
 
 <!-- ============ Screen 1: Upload ============ -->
 <div id="screen-upload" class="screen active">
-  <h1 class="brand">結婚式２次会 クイズ大会</h1>
-  <div class="brand-sub">QUIZ CHAMPIONSHIP</div>
+  <div class="brand-wrap">
+    <h1 class="brand" id="brandTitle" contenteditable="true" spellcheck="false"></h1>
+  </div>
+  <div class="brand-divider"></div>
+  <div class="edit-hint">↑ タイトルをクリックして編集できます</div>
+  <div class="brand-sub" style="margin-top: 16px;">QUIZ CHAMPIONSHIP</div>
 
   <div class="upload-zone" id="dropZone">
     <div class="upload-icon">📊</div>
@@ -517,7 +689,7 @@
     <input type="file" id="fileInput" hidden accept=".xlsx,.xls,.csv">
 
     <div class="upload-format">
-      <strong style="color:var(--gold-bright);">📝 データフォーマット</strong><br>
+      <strong style="color:var(--accent);">📝 データフォーマット</strong><br>
       1行目はヘッダー、2行目以降は各チームのデータです。
       <table>
         <tr><th>チーム名</th><th>カラー</th><th>Q1</th><th>Q2</th><th>Q3</th></tr>
@@ -525,8 +697,8 @@
         <tr><td>新婦チーム</td><td>#118ab2</td><td>10</td><td>10</td><td>0</td></tr>
       </table>
       ・カラーは <code>#RRGGBB</code> 形式（例: #e63946）／日本語名（赤・青等）も可<br>
-      ・問題列は何問でもOK（Q1, Q2, …）。空欄や0点も可<br>
-      ・チーム数も自由（推奨は2〜16）
+      ・問題列は何問でもOK（Q1, Q2, …）<br>
+      ・チーム数も自由
     </div>
 
     <div class="upload-error" id="uploadError" style="display:none;"></div>
@@ -542,35 +714,51 @@
   </div>
 </div>
 
-<!-- ============ Screen 3: Ready ============ -->
-<div id="screen-ready" class="screen">
-  <h1 class="brand">準備完了</h1>
-  <div class="brand-sub">READY TO REVEAL</div>
-
-  <div class="ready-info" id="readyInfo"></div>
-  <div class="ready-preview" id="readyPreview"></div>
-
-  <div class="ready-actions">
-    <button class="primary big" id="btnStart">🏆 結果発表スタート</button>
+<!-- ============ Screen 3: Confirm ============ -->
+<div id="screen-confirm" class="screen">
+  <div class="confirm-header">
+    <div class="confirm-title" id="confirmTitle"></div>
+    <div class="confirm-sub">点数の確認</div>
+  </div>
+  <div class="confirm-info" id="confirmInfo"></div>
+  <div class="confirm-table-wrap">
+    <table class="confirm-table" id="confirmTable"></table>
+  </div>
+  <div class="confirm-actions">
+    <button class="ghost" id="btnBackToUpload">← ファイルを選び直す</button>
+    <button class="primary big" id="btnReady">準備完了 →</button>
   </div>
 </div>
 
-<!-- ============ Screen 4: Stacking ============ -->
+<!-- ============ Screen 4: Ready ============ -->
+<div id="screen-ready" class="screen">
+  <div class="ready-sub">READY</div>
+  <div class="ready-title" id="readyTitle"></div>
+  <div class="ready-deco">✦ ✦ ✦</div>
+  <button class="primary big" id="btnStart">🏆 結果発表スタート</button>
+</div>
+
+<!-- ============ Screen 5: Stacking ============ -->
 <div id="screen-stacking" class="screen">
-  <div class="stacking-header">RESULTS</div>
+  <div class="stacking-header">
+    <div class="stacking-title" id="stackingTitle"></div>
+    <div class="stacking-question" id="stackingQuestion"></div>
+  </div>
   <div id="stackingBoard"></div>
 </div>
 
-<!-- ============ Screen 5: Top3 ============ -->
+<!-- ============ Screen 6: Top3 ============ -->
 <div id="screen-top3" class="screen">
-  <h1 class="brand" style="margin-bottom: 32px;">🎉 TOP 3 🎉</h1>
+  <h1 class="top3-title">🎉 TOP 3 🎉</h1>
   <div id="top3Display"></div>
 </div>
 
-<!-- ============ Screen 6: Ranking ============ -->
+<!-- ============ Screen 7: Ranking ============ -->
 <div id="screen-ranking" class="screen">
   <div class="ranking-title">FINAL RANKING</div>
-  <div class="ranking-list" id="rankingList"></div>
+  <div class="ranking-list-wrap">
+    <div class="ranking-list" id="rankingList"></div>
+  </div>
 </div>
 
 <script>
@@ -580,8 +768,10 @@
 // State
 // ============================================================
 let teams = []; // {name, color, scores:[], total}
+const TITLE_KEY = "quiz_event_title";
+const DEFAULT_TITLE = "結婚式２次会 クイズ大会";
 
-const screenIds = ["upload", "loading", "ready", "stacking", "top3", "ranking"];
+const screenIds = ["upload", "loading", "confirm", "ready", "stacking", "top3", "ranking"];
 
 function showScreen(name) {
   screenIds.forEach(id => {
@@ -609,6 +799,29 @@ function clearError() {
   document.getElementById("uploadError").style.display = "none";
 }
 
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// ============================================================
+// Editable title
+// ============================================================
+function loadTitle() {
+  return localStorage.getItem(TITLE_KEY) || DEFAULT_TITLE;
+}
+function saveTitle(t) {
+  const clean = t.trim() || DEFAULT_TITLE;
+  localStorage.setItem(TITLE_KEY, clean);
+  updateAllTitles(clean);
+  return clean;
+}
+function updateAllTitles(t) {
+  const title = t || loadTitle();
+  document.getElementById("brandTitle").textContent = title;
+  document.getElementById("confirmTitle").textContent = title;
+  document.getElementById("readyTitle").textContent = title;
+  document.getElementById("stackingTitle").textContent = title;
+  document.title = title + " - 結果発表";
+}
+
 // ============================================================
 // File parsing
 // ============================================================
@@ -633,7 +846,7 @@ function handleFile(file) {
       const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
       teams = parseRows(rows);
       animateLoading(70, 100, 700, () => {
-        setTimeout(() => showReady(), 400);
+        setTimeout(() => showConfirm(), 400);
       });
     } catch (err) {
       console.error(err);
@@ -654,8 +867,12 @@ function parseRows(rows) {
   const nameIdx = 0;
   const colorIdx = 1;
   const scoreIndices = [];
+  const scoreHeaders = [];
   for (let i = 2; i < headers.length; i++) {
-    if (headers[i] !== "") scoreIndices.push(i);
+    if (headers[i] !== "") {
+      scoreIndices.push(i);
+      scoreHeaders.push(headers[i]);
+    }
   }
   if (scoreIndices.length === 0) throw new Error("クイズ列(Q1, Q2…)が見つかりません");
 
@@ -670,6 +887,7 @@ function parseRows(rows) {
     out.push({ name, color, scores, total });
   }
   if (out.length === 0) throw new Error("有効なチーム行が見つかりません");
+  out._scoreHeaders = scoreHeaders;
   return out;
 }
 
@@ -709,43 +927,56 @@ function animateLoading(from, to, duration, onDone) {
 }
 
 // ============================================================
-// Screen 3: Ready
+// Screen 3: Confirm (score preview table)
 // ============================================================
-function showReady() {
+function showConfirm() {
   const maxScore = Math.max(...teams.map(t => t.total));
   const totalQs = teams[0]?.scores.length || 0;
 
-  document.getElementById("readyInfo").innerHTML = `
+  document.getElementById("confirmInfo").innerHTML = `
     <span class="num">${teams.length}</span>チーム
     全<span class="num">${totalQs}</span>問
     最高得点<span class="num">${maxScore}</span>pt
   `;
 
-  const preview = document.getElementById("readyPreview");
-  preview.innerHTML = "";
-  teams.forEach(t => {
-    const row = document.createElement("div");
-    row.className = "preview-team";
-    row.style.borderLeftColor = t.color;
-    row.innerHTML = `
-      <div class="name">${escapeHtml(t.name)}</div>
-      <div class="score">${t.total}pt</div>
-    `;
-    preview.appendChild(row);
-  });
+  const table = document.getElementById("confirmTable");
+  const scoreHeaders = teams._scoreHeaders || teams[0].scores.map((_, i) => `Q${i + 1}`);
 
+  let html = "<thead><tr><th></th><th style='text-align:left;padding-left:20px;'>チーム名</th>";
+  scoreHeaders.forEach(h => { html += `<th>${escapeHtml(h)}</th>`; });
+  html += "<th>合計</th></tr></thead><tbody>";
+  teams.forEach(t => {
+    html += "<tr>";
+    html += `<td class="team-color"><div class="swatch" style="background:${t.color}"></div></td>`;
+    html += `<td class="team-name">${escapeHtml(t.name)}</td>`;
+    t.scores.forEach(s => {
+      html += `<td>${s || ""}</td>`;
+    });
+    html += `<td class="total">${t.total}</td>`;
+    html += "</tr>";
+  });
+  html += "</tbody>";
+  table.innerHTML = html;
+
+  showScreen("confirm");
+}
+
+// ============================================================
+// Screen 4: Ready - just start button
+// ============================================================
+function showReady() {
   showScreen("ready");
 }
 
 // ============================================================
-// Screen 4: Stacking animation
+// Screen 5: Stacking animation - per-question pacing
 // ============================================================
 function startReveal() {
   setupStackingBoard();
   showScreen("stacking");
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    runStackingAnimation(() => {
-      setTimeout(showTop3, 1200);
+    runStackingAnimation().then(() => {
+      setTimeout(showTop3, 1500);
     });
   }));
 }
@@ -767,47 +998,78 @@ function setupStackingBoard() {
     `;
     board.appendChild(col);
   });
+  document.getElementById("stackingQuestion").innerHTML = "";
 }
 
-function runStackingAnimation(onDone) {
-  const maxScore = Math.max(...teams.map(t => t.total));
-  if (maxScore === 0) { onDone(); return; }
+async function runStackingAnimation() {
+  const numQuestions = teams[0]?.scores.length || 0;
+  if (numQuestions === 0) return;
+
+  // Pre-compute layout for blocks based on max total score
+  const maxTotal = Math.max(...teams.map(t => t.total));
+  if (maxTotal === 0) return;
 
   const sample = document.querySelector(".stack-container");
-  const containerHeight = sample.clientHeight;
-  const gap = maxScore <= 30 ? 2 : (maxScore <= 80 ? 1 : 0);
-  const totalGap = gap * (maxScore - 1);
-  const blockHeight = Math.max(2, (containerHeight - totalGap) / maxScore);
+  const containerHeight = sample.clientHeight - 6; // account for padding
+  // Block height: at least 4px for visibility. May overflow for very high scores.
+  const blockHeight = Math.max(4, containerHeight / maxTotal);
 
-  const TARGET_DURATION = 5500;
-  const tickInterval = Math.max(18, Math.min(90, TARGET_DURATION / maxScore));
-
-  let tick = 0;
   const stackEls = teams.map((_, i) => document.getElementById("stack-" + i));
   const scoreEls = teams.map((_, i) => document.getElementById("stack-score-" + i));
+  const runningScores = teams.map(() => 0);
 
-  const id = setInterval(() => {
-    tick++;
-    teams.forEach((t, i) => {
-      if (tick <= t.total) {
-        const block = document.createElement("div");
-        block.className = "block";
-        block.style.height = blockHeight + "px";
-        block.style.background = t.color;
-        if (gap > 0) block.style.marginTop = gap + "px";
-        stackEls[i].appendChild(block);
-        scoreEls[i].textContent = tick;
+  // Show initial Q1 indicator
+  for (let q = 0; q < numQuestions; q++) {
+    // Show question indicator with flash
+    showQuestionIndicator(q + 1, numQuestions);
+    await sleep(800);
+
+    // Compute Q points per team
+    const qPoints = teams.map(t => t.scores[q]);
+    const maxQ = Math.max(...qPoints);
+
+    if (maxQ > 0) {
+      // Per-tick: each team that has remaining qPoints adds one block
+      const perBlockMs = Math.max(60, Math.min(180, 1200 / maxQ));
+      for (let tick = 1; tick <= maxQ; tick++) {
+        teams.forEach((t, i) => {
+          if (tick <= qPoints[i]) {
+            const block = document.createElement("div");
+            block.className = "block";
+            block.style.height = blockHeight + "px";
+            block.style.background = t.color;
+            stackEls[i].appendChild(block);
+            runningScores[i]++;
+            scoreEls[i].textContent = runningScores[i];
+          }
+        });
+        await sleep(perBlockMs);
       }
-    });
-    if (tick >= maxScore) {
-      clearInterval(id);
-      setTimeout(onDone, 600);
     }
-  }, tickInterval);
+
+    // Pause between questions (the "beat")
+    await sleep(900);
+  }
+
+  // Final "完了"
+  const qIndicator = document.getElementById("stackingQuestion");
+  qIndicator.innerHTML = `<span style="color: var(--rose);">✦ 集計完了 ✦</span>`;
+  qIndicator.classList.remove("flash");
+  void qIndicator.offsetWidth;
+  qIndicator.classList.add("flash");
+  await sleep(1200);
+}
+
+function showQuestionIndicator(q, total) {
+  const el = document.getElementById("stackingQuestion");
+  el.innerHTML = `Question<span class="q-num">${q}</span><span style="opacity:0.4;"> / ${total}</span>`;
+  el.classList.remove("flash");
+  void el.offsetWidth; // force reflow
+  el.classList.add("flash");
 }
 
 // ============================================================
-// Screen 5: Top 3
+// Screen 6: Top 3
 // ============================================================
 function showTop3() {
   const sorted = [...teams].sort((a, b) => b.total - a.total);
@@ -838,7 +1100,7 @@ function showTop3() {
 }
 
 // ============================================================
-// Screen 6: Ranking reveal (from last place upward)
+// Screen 7: Ranking reveal (from last place upward)
 // ============================================================
 function showRanking() {
   const sorted = [...teams].sort((a, b) => b.total - a.total);
@@ -867,18 +1129,29 @@ function showRanking() {
 
   showScreen("ranking");
 
+  // Scroll the screen to bottom so the last-place row is visible first
+  const screen = document.getElementById("screen-ranking");
+  requestAnimationFrame(() => {
+    screen.scrollTop = screen.scrollHeight;
+  });
+
   // Reveal from last place to first
   const rows = Array.from(list.children).reverse();
-  const stepMs = Math.max(500, Math.min(1100, 9000 / rows.length));
+  const stepMs = Math.max(600, Math.min(1200, 10000 / rows.length));
 
   rows.forEach((row, i) => {
     setTimeout(() => {
       row.classList.add("revealed");
-      row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      // Scroll smoothly so the revealing row is visible
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
     }, i * stepMs);
   });
 
-  setTimeout(() => celebrate(true), rows.length * stepMs + 200);
+  setTimeout(() => {
+    // Final scroll to top to show #1
+    screen.scrollTo({ top: 0, behavior: "smooth" });
+    celebrate(true);
+  }, rows.length * stepMs + 200);
 }
 
 // ============================================================
@@ -892,7 +1165,7 @@ function celebrate(big = false) {
   document.body.appendChild(canvas);
   const ctx = canvas.getContext("2d");
 
-  const colors = ["#ffd700", "#ff6b6b", "#4ecdc4", "#ffe66d", "#a8e6cf", "#ff8b94", "#f5d670"];
+  const colors = ["#d4af37", "#b8860b", "#8b1538", "#c2185b", "#e8d795", "#f5d670", "#f4a261", "#ef476f"];
   const count = big ? 300 : 180;
   const pieces = [];
   for (let i = 0; i < count; i++) {
@@ -940,9 +1213,7 @@ function downloadSample() {
   const rows = [header];
   for (let i = 0; i < 12; i++) {
     const r = [`チーム${i + 1}`, colors[i]];
-    for (let q = 0; q < 8; q++) {
-      r.push(Math.floor(Math.random() * 4) * 10);
-    }
+    for (let q = 0; q < 8; q++) r.push(Math.floor(Math.random() * 4) * 10);
     rows.push(r);
   }
   const csv = "﻿" + rows.map(r => r.join(",")).join("\r\n");
@@ -966,6 +1237,8 @@ function loadDemo() {
   const names = ["新郎チーム","新婦チーム","幼馴染","大学同期","会社同僚","親戚一同",
                  "サッカー部","軽音部","旅行仲間","ゲーム友","近所組","研究室"];
   teams = [];
+  const headers = [];
+  for (let q = 0; q < 7; q++) headers.push(`Q${q + 1}`);
   for (let i = 0; i < 12; i++) {
     const scores = [];
     for (let q = 0; q < 7; q++) scores.push(Math.floor(Math.random() * 4) * 10);
@@ -976,7 +1249,8 @@ function loadDemo() {
       total: scores.reduce((a, b) => a + b, 0)
     });
   }
-  showReady();
+  teams._scoreHeaders = headers;
+  showConfirm();
 }
 
 // ============================================================
@@ -984,6 +1258,26 @@ function loadDemo() {
 // ============================================================
 const dropZone = document.getElementById("dropZone");
 const fileInput = document.getElementById("fileInput");
+const brandTitle = document.getElementById("brandTitle");
+
+// Initialize titles
+updateAllTitles();
+
+// Editable title behavior
+brandTitle.addEventListener("blur", () => {
+  saveTitle(brandTitle.textContent);
+});
+brandTitle.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    brandTitle.blur();
+  }
+});
+brandTitle.addEventListener("paste", (e) => {
+  e.preventDefault();
+  const text = (e.clipboardData || window.clipboardData).getData("text").replace(/\n/g, " ");
+  document.execCommand("insertText", false, text);
+});
 
 document.getElementById("btnPickFile").onclick = () => fileInput.click();
 fileInput.onchange = (e) => {
@@ -994,6 +1288,8 @@ fileInput.onchange = (e) => {
 
 document.getElementById("btnSample").onclick = downloadSample;
 document.getElementById("btnDemo").onclick = loadDemo;
+document.getElementById("btnBackToUpload").onclick = () => showScreen("upload");
+document.getElementById("btnReady").onclick = showReady;
 document.getElementById("btnStart").onclick = startReveal;
 document.getElementById("restartBtn").onclick = () => {
   if (confirm("最初の画面に戻りますか？")) {
@@ -1021,7 +1317,9 @@ window.addEventListener("dragover", e => e.preventDefault());
 window.addEventListener("drop", e => e.preventDefault());
 
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") document.getElementById("restartBtn").click();
+  if (e.key === "Escape" && document.activeElement !== brandTitle) {
+    document.getElementById("restartBtn").click();
+  }
 });
 </script>
 </body>

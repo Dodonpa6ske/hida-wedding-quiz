@@ -1243,6 +1243,10 @@ function showRanking() {
   showScreen("ranking");
 
   const screen = document.getElementById("screen-ranking");
+  const wrap = document.querySelector(".ranking-list-wrap");
+  // Reset any previous centering shift from a prior run
+  wrap.style.transition = "none";
+  wrap.style.transform = "";
   screen.scrollTop = 0;
 
   // Reveal worst-rank first; each new row is inserted at the TOP of the list
@@ -1305,7 +1309,19 @@ function showRanking() {
   });
 
   setTimeout(() => {
-    screen.scrollTo({ top: 0, behavior: "smooth" });
+    // After all reveals, smoothly shift the list so #1 (top child) lands
+    // at the vertical center of the screen.
+    const topRow = list.firstChild;
+    if (topRow) {
+      const rowRect = topRow.getBoundingClientRect();
+      const targetCenter = window.innerHeight / 2;
+      const currentCenter = (rowRect.top + rowRect.bottom) / 2;
+      const shift = targetCenter - currentCenter;
+      if (Math.abs(shift) > 4) {
+        wrap.style.transition = "transform 1.1s cubic-bezier(0.22, 1, 0.36, 1)";
+        wrap.style.transform = `translateY(${shift}px)`;
+      }
+    }
     celebrate(true);
   }, revealOrder.length * stepMs + 500);
 }

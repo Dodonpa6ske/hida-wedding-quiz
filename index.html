@@ -488,20 +488,16 @@
   .stack-name {
     margin-top: 8px;
     text-align: center;
-    padding: 10px 4px 8px;
-    font-size: clamp(13px, 1.6vw, 22px);
+    padding: 12px 6px;
+    font-size: clamp(13px, 1.5vw, 20px);
     font-weight: 700;
-    color: var(--text);
-    border-top: 4px solid;
     line-height: 1.2;
-    letter-spacing: 0.04em;
-    word-break: keep-all;
-    overflow-wrap: break-word;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    letter-spacing: 0.03em;
+    border-radius: 6px;
+    white-space: nowrap;
     overflow: hidden;
-    min-height: 2.6em;
+    text-overflow: ellipsis;
+    box-shadow: 0 2px 6px rgba(44,21,56,0.15);
   }
 
   /* ===== Screen 6: Top3 ===== */
@@ -724,15 +720,13 @@
 <body>
 
 <button id="restartBtn" class="ghost hidden">↺ 最初から</button>
-<div id="noShareNotice">⚠ 画面共有しないでください</div>
-<div id="startShareOverlay">📺 画面共有を開始してください</div>
+<div id="noShareNotice" class="show">⚠ 画面共有しないでください</div>
 
 <!-- ============ Screen 1: Upload ============ -->
 <div id="screen-upload" class="screen active">
   <div class="brand-wrap">
     <h1 class="brand" id="brandTitle" contenteditable="true" spellcheck="false"></h1>
   </div>
-  <div class="brand-divider"></div>
   <div class="edit-hint">↑ タイトルをクリックして編集できます</div>
   <div style="height: 28px;"></div>
 
@@ -794,7 +788,7 @@
 <div id="screen-ready" class="screen">
   <div class="ready-sub">READY</div>
   <div class="ready-title" id="readyTitle"></div>
-  <div class="ready-deco">✦ ✦ ✦</div>
+  <div style="height: 32px;"></div>
   <button class="primary big" id="btnStart">🏆 結果発表スタート</button>
 </div>
 
@@ -848,14 +842,6 @@ function showScreen(name) {
   if (["upload", "loading", "confirm"].includes(name)) noShare.classList.add("show");
   else noShare.classList.remove("show");
 
-  // "Start screen sharing" overlay: appears for 3s on ready screen
-  const overlay = document.getElementById("startShareOverlay");
-  overlay.classList.remove("show");
-  if (name === "ready") {
-    void overlay.offsetWidth; // force reflow to restart animation
-    overlay.classList.add("show");
-    setTimeout(() => overlay.classList.remove("show"), 3100);
-  }
 }
 
 function escapeHtml(s) {
@@ -1078,16 +1064,29 @@ function setupStackingBoard() {
   teams.forEach((t, i) => {
     const col = document.createElement("div");
     col.className = "stack-col";
+    const textColor = contrastTextColor(t.color);
     col.innerHTML = `
       <div class="stack-score" id="stack-score-${i}">0</div>
       <div class="stack-container">
         <div class="stack" id="stack-${i}"></div>
       </div>
-      <div class="stack-name" style="border-color:${t.color}" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</div>
+      <div class="stack-name" style="background:${t.color};color:${textColor}" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</div>
     `;
     board.appendChild(col);
   });
   document.getElementById("stackingQuestion").innerHTML = "";
+}
+
+function contrastTextColor(hex) {
+  const c = String(hex || "").replace("#", "");
+  if (c.length !== 6 && c.length !== 3) return "#ffffff";
+  const full = c.length === 3 ? c.split("").map(ch => ch + ch).join("") : c;
+  const r = parseInt(full.substr(0, 2), 16);
+  const g = parseInt(full.substr(2, 2), 16);
+  const b = parseInt(full.substr(4, 2), 16);
+  // Perceived luminance (sRGB approximation)
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.6 ? "#2c1538" : "#ffffff";
 }
 
 async function runStackingAnimation() {

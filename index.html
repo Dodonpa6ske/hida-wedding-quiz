@@ -424,6 +424,13 @@
     transition: opacity 0.3s, transform 0.3s;
     font-family: var(--font-main);
     font-variant-numeric: tabular-nums;
+    /* Reserve enough vertical space so the header height never collapses
+       between Q-number states and the "集計完了" state */
+    min-height: 1.6em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
   }
   .stacking-question .q-num {
     font-size: 1.4em;
@@ -1172,7 +1179,7 @@ async function runStackingAnimation() {
 
   // Final "完了"
   const qIndicator = document.getElementById("stackingQuestion");
-  qIndicator.innerHTML = `<span style="color: var(--rose);">✦ 集計完了 ✦</span>`;
+  qIndicator.innerHTML = `<span class="q-num" style="margin:0;">✦ 集計完了 ✦</span>`;
   qIndicator.classList.remove("flash");
   void qIndicator.offsetWidth;
   qIndicator.classList.add("flash");

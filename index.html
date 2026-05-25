@@ -608,10 +608,11 @@
     background: var(--bg-card);
     border-radius: 8px;
     opacity: 0;
-    transform: translateY(-32px);
-    transition: opacity 0.55s ease-out, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateY(-28px);
+    transition: opacity 0.7s ease-out, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
     border-left: 4px solid transparent;
     box-shadow: var(--paper-shadow);
+    will-change: transform, opacity;
   }
   .rank-row.revealed {
     opacity: 1;
@@ -1226,12 +1227,30 @@ function showRanking() {
   // Reveal worst-rank first; each new row is inserted at the TOP of the list
   // so previously revealed rows are pushed down. Final layout: 1 at top, last at bottom.
   const revealOrder = sorted.map((_, i) => i).reverse(); // [lastIdx, ..., bestIdx]
-  const stepMs = Math.max(700, Math.min(1300, 11000 / revealOrder.length));
+  const stepMs = Math.max(800, Math.min(1400, 12000 / revealOrder.length));
+
+  // FLIP animation: existing rows smoothly slide down to make room for the new row,
+  // while the new row slides down from above.
+  const FLIP_DURATION = "0.7s";
+  const FLIP_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 
   revealOrder.forEach((origIdx, n) => {
     setTimeout(() => {
       const t = sorted[origIdx];
       const rank = ranks[origIdx];
+
+      // FIRST: snapshot positions of existing rows before insertion
+      const existing = Array.from(list.children);
+      // Snap any in-flight transforms to their CSS-final state so we measure cleanly
+      existing.forEach(r => {
+        r.style.transition = "none";
+        r.style.transform = "translateY(0)";
+      });
+      // Force layout commit
+      void list.offsetHeight;
+      const prevTops = existing.map(r => r.getBoundingClientRect().top);
+
+      // Insert the new row at the top
       const row = document.createElement("div");
       row.className = "rank-row r" + rank;
       row.innerHTML = `
@@ -1240,21 +1259,34 @@ function showRanking() {
         <div class="rank-name">${escapeHtml(t.name)}</div>
         <div class="rank-score">${t.total}<span style="font-size:0.5em;opacity:0.7;margin-left:3px;">pt</span></div>
       `;
-      // Insert at the top so newest reveal is directly below the title
       list.insertBefore(row, list.firstChild);
-      // Keep viewport anchored to the title/top so the new row is always visible
-      screen.scrollTo({ top: 0, behavior: "auto" });
-      // Trigger the fade/slide-down animation
-      requestAnimationFrame(() => requestAnimationFrame(() => {
+
+      // LAST + INVERT: measure new positions of existing rows; apply inverse transform
+      existing.forEach((r, i) => {
+        const newTop = r.getBoundingClientRect().top;
+        const dy = prevTops[i] - newTop;
+        if (Math.abs(dy) > 0.5) {
+          r.style.transform = `translateY(${dy}px)`;
+        }
+      });
+      // Commit the inverted state without transition
+      void list.offsetHeight;
+
+      // PLAY: next frame, enable transitions and animate everything to natural position
+      requestAnimationFrame(() => {
+        existing.forEach(r => {
+          r.style.transition = `transform ${FLIP_DURATION} ${FLIP_EASING}`;
+          r.style.transform = "translateY(0)";
+        });
         row.classList.add("revealed");
-      }));
+      });
     }, n * stepMs);
   });
 
   setTimeout(() => {
     screen.scrollTo({ top: 0, behavior: "smooth" });
     celebrate(true);
-  }, revealOrder.length * stepMs + 400);
+  }, revealOrder.length * stepMs + 500);
 }
 
 // ============================================================

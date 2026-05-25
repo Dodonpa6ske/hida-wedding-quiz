@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>結婚式２次会 クイズ大会</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-1: #1a0a1f;
+    --bg-2: #2d1338;
+    --gold: #d4af37;
+    --gold-bright: #f0d264;
+    --text: #fff;
+    --panel: rgba(255,255,255,0.08);
+    --panel-border: rgba(212,175,55,0.4);
+  }
+
+  html, body {
+    height: 100%;
+    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-2) 0%, var(--bg-1) 70%);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ===== Header ===== */
+  header {
+    padding: 14px 24px 8px;
+    text-align: center;
+    border-bottom: 1px solid rgba(212,175,55,0.2);
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-size: 28px;
+    letter-spacing: 0.2em;
+    color: var(--gold-bright);
+    text-shadow: 0 0 20px rgba(212,175,55,0.5);
+    font-weight: 300;
+  }
+  header .sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 0.3em;
+  }
+
+  /* ===== Main board ===== */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 12px 8px;
+    min-height: 0;
+  }
+
+  #board {
+    flex: 1;
+    display: grid;
+    gap: 8px;
+    align-items: stretch;
+    min-height: 0;
+  }
+
+  .team {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 10px 4px 8px;
+    overflow: hidden;
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s;
+    min-width: 0;
+  }
+  .team.rank-1 {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), inset 0 0 20px rgba(255, 215, 0, 0.15);
+    border-color: gold;
+  }
+  .team.rank-2 {
+    box-shadow: 0 0 18px rgba(192, 192, 192, 0.5);
+    border-color: silver;
+  }
+  .team.rank-3 {
+    box-shadow: 0 0 18px rgba(205, 127, 50, 0.5);
+    border-color: #cd7f32;
+  }
+
+  .rank-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(212,175,55,0.5);
+    color: var(--gold-bright);
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  .team.rank-1 .rank-badge { background: gold; color: #5a3a00; border-color: gold; font-size: 16px; }
+  .team.rank-2 .rank-badge { background: silver; color: #333; border-color: silver; }
+  .team.rank-3 .rank-badge { background: #cd7f32; color: #fff; border-color: #cd7f32; }
+
+  .team-color-bar {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    margin-bottom: 8px;
+    margin-top: 4px;
+  }
+
+  .team-name {
+    font-size: clamp(11px, 1.1vw, 16px);
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    padding: 0 4px;
+  }
+
+  .score-display {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  .score {
+    font-size: clamp(28px, 4.5vw, 64px);
+    font-weight: 800;
+    color: var(--gold-bright);
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    transition: color 0.3s;
+    line-height: 1;
+  }
+  .score.flashing {
+    animation: scorePop 0.8s ease-out;
+  }
+  @keyframes scorePop {
+    0%   { transform: scale(1); color: var(--gold-bright); }
+    30%  { transform: scale(1.5); color: #fff; text-shadow: 0 0 30px #fff, 0 0 60px var(--gold-bright); }
+    100% { transform: scale(1); color: var(--gold-bright); }
+  }
+
+  .score-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.2em;
+    margin-top: 4px;
+  }
+
+  .delta {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(24px, 3vw, 44px);
+    font-weight: 800;
+    color: #4ade80;
+    text-shadow: 0 0 20px #4ade80, 0 0 40px #4ade80;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .delta.show {
+    animation: deltaRise 1.6s ease-out forwards;
+  }
+  @keyframes deltaRise {
+    0%   { opacity: 0; transform: translate(-50%, 20px) scale(0.6); }
+    20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    80%  { opacity: 1; transform: translate(-50%, -120%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -150%) scale(0.9); }
+  }
+
+  /* ===== Footer / Controls ===== */
+  footer {
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.4);
+    border-top: 1px solid rgba(212,175,55,0.2);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: inherit;
+    padding: 9px 16px;
+    border: 1px solid var(--panel-border);
+    background: rgba(212,175,55,0.15);
+    color: var(--text);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  button:hover {
+    background: rgba(212,175,55,0.3);
+    transform: translateY(-1px);
+  }
+  button.primary {
+    background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+    color: #2d1338;
+    font-weight: 600;
+    border-color: var(--gold-bright);
+  }
+  button.primary:hover {
+    box-shadow: 0 4px 16px rgba(212,175,55,0.5);
+  }
+  button.danger {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+  button.danger:hover { background: rgba(239, 68, 68, 0.4); }
+
+  .q-info {
+    color: var(--gold-bright);
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    padding: 0 12px;
+    border-left: 1px solid rgba(212,175,55,0.3);
+    border-right: 1px solid rgba(212,175,55,0.3);
+  }
+
+  /* ===== Modal ===== */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: linear-gradient(180deg, #2d1338, #1a0a1f);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    width: min(900px, 92vw);
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  }
+  .modal h2 {
+    color: var(--gold-bright);
+    margin-bottom: 18px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-align: center;
+    font-size: 22px;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.1em;
+  }
+  .field input, .field select {
+    padding: 8px 10px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+  }
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+
+  .teams-edit {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .team-edit {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(255,255,255,0.04);
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+  .team-edit .idx {
+    width: 24px;
+    color: var(--gold-bright);
+    font-weight: bold;
+    font-size: 13px;
+    text-align: center;
+  }
+  .team-edit input[type=text] {
+    flex: 1;
+    padding: 6px 8px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    min-width: 0;
+  }
+  .team-edit input[type=color] {
+    width: 36px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .questions-edit {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .q-edit {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    background: rgba(255,255,255,0.04);
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+  .q-edit .q-label { font-size: 12px; color: var(--gold-bright); white-space: nowrap; }
+  .q-edit input {
+    flex: 1;
+    padding: 5px 6px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    min-width: 0;
+    text-align: right;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .section-title {
+    color: var(--gold-bright);
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    margin: 18px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(212,175,55,0.2);
+  }
+
+  /* ===== Reveal Panel ===== */
+  #revealPanel .teams-edit { grid-template-columns: repeat(3, 1fr); }
+  .reveal-team {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(255,255,255,0.04);
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .reveal-team:hover { background: rgba(255,255,255,0.08); }
+  .reveal-team.selected {
+    background: rgba(74, 222, 128, 0.2);
+    border: 1px solid rgba(74, 222, 128, 0.6);
+    padding: 7px 9px;
+  }
+  .reveal-team .swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .reveal-team .name {
+    flex: 1;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .reveal-team .pts {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+  }
+
+  /* ===== History Panel ===== */
+  .history-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 100px;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    align-items: center;
+  }
+  .history-row .q { color: var(--gold-bright); font-weight: 600; }
+  .history-row .teams-won { color: rgba(255,255,255,0.85); }
+  .history-row button {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  /* ===== Confetti for winner ===== */
+  .confetti {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+  }
+
+  @media (max-width: 900px) {
+    .field-row { grid-template-columns: 1fr; }
+    .teams-edit { grid-template-columns: 1fr; }
+    #revealPanel .teams-edit { grid-template-columns: 1fr; }
+    header h1 { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>結婚式２次会 クイズ大会</h1>
+    <div class="sub">QUIZ CHAMPIONSHIP</div>
+  </header>
+
+  <main>
+    <div id="board"></div>
+  </main>
+
+  <footer>
+    <button id="btnSettings">⚙ 設定</button>
+    <button id="btnReveal" class="primary">🎯 ポイント加算</button>
+    <div class="q-info" id="qInfo">問題 0 / 0</div>
+    <button id="btnHistory">📋 履歴</button>
+    <button id="btnReset" class="danger">リセット</button>
+  </footer>
+
+  <!-- ===== Settings Modal ===== -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal">
+      <h2>設定</h2>
+
+      <div class="field-row">
+        <div class="field">
+          <label>チーム数</label>
+          <input type="number" id="teamCount" min="2" max="20" value="12">
+        </div>
+        <div class="field">
+          <label>問題数</label>
+          <input type="number" id="questionCount" min="1" max="50" value="10">
+        </div>
+        <div class="field">
+          <label>デフォルト配点</label>
+          <input type="number" id="defaultPoints" min="1" value="10">
+        </div>
+      </div>
+
+      <div class="section-title">チーム名・カラー</div>
+      <div class="teams-edit" id="teamsEdit"></div>
+
+      <div class="section-title">問題ごとの配点</div>
+      <div class="questions-edit" id="questionsEdit"></div>
+
+      <div class="modal-actions">
+        <button id="btnSettingsCancel">キャンセル</button>
+        <button id="btnSettingsSave" class="primary">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Reveal Modal ===== -->
+  <div class="modal-backdrop" id="revealModal">
+    <div class="modal" id="revealPanel">
+      <h2>ポイント加算</h2>
+
+      <div class="field-row" style="grid-template-columns: 1fr 1fr;">
+        <div class="field">
+          <label>問題番号</label>
+          <select id="revealQuestion"></select>
+        </div>
+        <div class="field">
+          <label>配点</label>
+          <input type="number" id="revealPoints" min="0">
+        </div>
+      </div>
+
+      <div class="section-title">正解したチームを選択</div>
+      <div class="teams-edit" id="revealTeams"></div>
+
+      <div class="modal-actions">
+        <button id="btnRevealCancel">キャンセル</button>
+        <button id="btnRevealApply" class="primary">🎉 加算してアニメーション</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== History Modal ===== -->
+  <div class="modal-backdrop" id="historyModal">
+    <div class="modal">
+      <h2>加算履歴</h2>
+      <div id="historyList"></div>
+      <div class="modal-actions">
+        <button id="btnHistoryClose">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+"use strict";
+
+const STORAGE_KEY = "hida_wedding_quiz_v1";
+
+const DEFAULT_COLORS = [
+  "#e63946", "#f4a261", "#e9c46a", "#2a9d8f",
+  "#264653", "#06d6a0", "#118ab2", "#073b4c",
+  "#ef476f", "#ffd166", "#8338ec", "#ff6b6b"
+];
+
+let state = {
+  teams: [],          // [{name, color, score}]
+  questions: [],      // [points]
+  history: [],        // [{q, points, teamIdxs:[], ts}]
+};
+
+// ---- Initialization ----
+function defaultState() {
+  const teams = [];
+  for (let i = 0; i < 12; i++) {
+    teams.push({
+      name: `チーム${i + 1}`,
+      color: DEFAULT_COLORS[i % DEFAULT_COLORS.length],
+      score: 0,
+    });
+  }
+  const questions = Array.from({ length: 10 }, () => 10);
+  return { teams, questions, history: [] };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      state = JSON.parse(raw);
+      if (!state.teams || !state.questions) state = defaultState();
+    } else {
+      state = defaultState();
+    }
+  } catch (e) {
+    state = defaultState();
+  }
+}
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ---- Render Board ----
+function render() {
+  const board = document.getElementById("board");
+  const n = state.teams.length;
+  board.style.gridTemplateColumns = `repeat(${n}, minmax(0, 1fr))`;
+
+  // Compute ranks (1-based; ties share rank)
+  const sorted = state.teams
+    .map((t, i) => ({ score: t.score, i }))
+    .sort((a, b) => b.score - a.score);
+  const rankByIdx = new Array(n).fill(0);
+  let curRank = 0, lastScore = null, seen = 0;
+  for (const s of sorted) {
+    seen++;
+    if (s.score !== lastScore) { curRank = seen; lastScore = s.score; }
+    rankByIdx[s.i] = curRank;
+  }
+
+  board.innerHTML = "";
+  state.teams.forEach((t, i) => {
+    const rank = rankByIdx[i];
+    const el = document.createElement("div");
+    el.className = `team rank-${rank}`;
+    el.dataset.idx = i;
+    el.innerHTML = `
+      <div class="rank-badge">${rank}</div>
+      <div class="team-color-bar" style="background:${t.color}"></div>
+      <div class="team-name" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</div>
+      <div class="score-display">
+        <div class="score" data-score>${t.score}</div>
+        <div class="score-label">PTS</div>
+      </div>
+    `;
+    board.appendChild(el);
+  });
+
+  // Update question info
+  const totalQ = state.questions.length;
+  const answeredQ = new Set(state.history.map(h => h.q)).size;
+  document.getElementById("qInfo").textContent = `問題 ${answeredQ} / ${totalQ}`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+// ---- Settings Modal ----
+function openSettings() {
+  document.getElementById("teamCount").value = state.teams.length;
+  document.getElementById("questionCount").value = state.questions.length;
+  document.getElementById("defaultPoints").value = state.questions[0] || 10;
+
+  renderTeamsEdit();
+  renderQuestionsEdit();
+  document.getElementById("settingsModal").classList.add("open");
+}
+function renderTeamsEdit() {
+  const count = parseInt(document.getElementById("teamCount").value) || 12;
+  const wrap = document.getElementById("teamsEdit");
+  wrap.innerHTML = "";
+  for (let i = 0; i < count; i++) {
+    const t = state.teams[i] || {
+      name: `チーム${i + 1}`,
+      color: DEFAULT_COLORS[i % DEFAULT_COLORS.length],
+      score: 0,
+    };
+    const row = document.createElement("div");
+    row.className = "team-edit";
+    row.innerHTML = `
+      <div class="idx">${i + 1}</div>
+      <input type="text" data-tname="${i}" value="${escapeHtml(t.name)}" maxlength="20">
+      <input type="color" data-tcolor="${i}" value="${t.color}">
+    `;
+    wrap.appendChild(row);
+  }
+}
+function renderQuestionsEdit() {
+  const count = parseInt(document.getElementById("questionCount").value) || 10;
+  const defPts = parseInt(document.getElementById("defaultPoints").value) || 10;
+  const wrap = document.getElementById("questionsEdit");
+  wrap.innerHTML = "";
+  for (let i = 0; i < count; i++) {
+    const pts = state.questions[i] != null ? state.questions[i] : defPts;
+    const row = document.createElement("div");
+    row.className = "q-edit";
+    row.innerHTML = `
+      <span class="q-label">Q${i + 1}</span>
+      <input type="number" data-qpts="${i}" value="${pts}" min="0">
+      <span class="q-label">pt</span>
+    `;
+    wrap.appendChild(row);
+  }
+}
+function saveSettings() {
+  const tCount = parseInt(document.getElementById("teamCount").value) || 12;
+  const qCount = parseInt(document.getElementById("questionCount").value) || 10;
+  const defPts = parseInt(document.getElementById("defaultPoints").value) || 10;
+
+  const newTeams = [];
+  for (let i = 0; i < tCount; i++) {
+    const nameEl = document.querySelector(`[data-tname="${i}"]`);
+    const colorEl = document.querySelector(`[data-tcolor="${i}"]`);
+    const existing = state.teams[i];
+    newTeams.push({
+      name: nameEl ? nameEl.value.trim() || `チーム${i + 1}` : `チーム${i + 1}`,
+      color: colorEl ? colorEl.value : DEFAULT_COLORS[i % DEFAULT_COLORS.length],
+      score: existing ? existing.score : 0,
+    });
+  }
+
+  const newQuestions = [];
+  for (let i = 0; i < qCount; i++) {
+    const ptsEl = document.querySelector(`[data-qpts="${i}"]`);
+    newQuestions.push(ptsEl ? parseInt(ptsEl.value) || 0 : defPts);
+  }
+
+  state.teams = newTeams;
+  state.questions = newQuestions;
+  save();
+  render();
+  closeAllModals();
+}
+
+// ---- Reveal Modal ----
+let revealSelectedTeams = new Set();
+function openReveal() {
+  // Find next unanswered question, or first
+  const answeredQs = new Set(state.history.map(h => h.q));
+  let defaultQ = 0;
+  for (let i = 0; i < state.questions.length; i++) {
+    if (!answeredQs.has(i)) { defaultQ = i; break; }
+  }
+
+  const qSel = document.getElementById("revealQuestion");
+  qSel.innerHTML = "";
+  state.questions.forEach((pts, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = `Q${i + 1} (${pts}pt)${answeredQs.has(i) ? " ✓" : ""}`;
+    qSel.appendChild(opt);
+  });
+  qSel.value = defaultQ;
+  document.getElementById("revealPoints").value = state.questions[defaultQ];
+
+  qSel.onchange = () => {
+    document.getElementById("revealPoints").value = state.questions[parseInt(qSel.value)];
+  };
+
+  revealSelectedTeams = new Set();
+  renderRevealTeams();
+  document.getElementById("revealModal").classList.add("open");
+}
+function renderRevealTeams() {
+  const wrap = document.getElementById("revealTeams");
+  wrap.innerHTML = "";
+  state.teams.forEach((t, i) => {
+    const row = document.createElement("div");
+    row.className = "reveal-team" + (revealSelectedTeams.has(i) ? " selected" : "");
+    row.innerHTML = `
+      <div class="swatch" style="background:${t.color}"></div>
+      <div class="name">${escapeHtml(t.name)}</div>
+      <div class="pts">${t.score}pt</div>
+    `;
+    row.onclick = () => {
+      if (revealSelectedTeams.has(i)) revealSelectedTeams.delete(i);
+      else revealSelectedTeams.add(i);
+      renderRevealTeams();
+    };
+    wrap.appendChild(row);
+  });
+}
+function applyReveal() {
+  const qIdx = parseInt(document.getElementById("revealQuestion").value);
+  const pts = parseInt(document.getElementById("revealPoints").value) || 0;
+  const teamIdxs = Array.from(revealSelectedTeams);
+
+  if (teamIdxs.length === 0) {
+    closeAllModals();
+    return;
+  }
+
+  // Update state.questions[qIdx] in case operator overrode pts
+  state.questions[qIdx] = pts;
+
+  // Record history
+  state.history.push({
+    q: qIdx,
+    points: pts,
+    teamIdxs,
+    ts: Date.now(),
+  });
+
+  // Update scores
+  teamIdxs.forEach(i => { state.teams[i].score += pts; });
+
+  save();
+  closeAllModals();
+
+  // Animate
+  animateReveal(teamIdxs, pts);
+}
+
+function animateReveal(teamIdxs, pts) {
+  // Re-render with new scores but capture old positions first
+  // Simple approach: re-render, then highlight each team
+  render();
+
+  setTimeout(() => {
+    teamIdxs.forEach((idx, n) => {
+      setTimeout(() => {
+        const teamEl = document.querySelector(`.team[data-idx="${idx}"]`);
+        if (!teamEl) return;
+        const scoreEl = teamEl.querySelector("[data-score]");
+        if (scoreEl) {
+          scoreEl.classList.remove("flashing");
+          // force reflow
+          void scoreEl.offsetWidth;
+          scoreEl.classList.add("flashing");
+        }
+        // Delta floater
+        const delta = document.createElement("div");
+        delta.className = "delta show";
+        delta.textContent = `+${pts}`;
+        teamEl.appendChild(delta);
+        setTimeout(() => delta.remove(), 1700);
+      }, n * 120);
+    });
+
+    // If all questions done, celebrate
+    const answered = new Set(state.history.map(h => h.q)).size;
+    if (answered >= state.questions.length) {
+      setTimeout(celebrate, teamIdxs.length * 120 + 800);
+    }
+  }, 50);
+}
+
+// ---- History ----
+function openHistory() {
+  const list = document.getElementById("historyList");
+  list.innerHTML = "";
+  if (state.history.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.5);padding:20px;">まだ加算履歴はありません</div>';
+  } else {
+    state.history.slice().reverse().forEach((h, revIdx) => {
+      const realIdx = state.history.length - 1 - revIdx;
+      const names = h.teamIdxs.map(i => state.teams[i]?.name || `?`).join("、");
+      const row = document.createElement("div");
+      row.className = "history-row";
+      row.innerHTML = `
+        <div class="q">Q${h.q + 1} +${h.points}</div>
+        <div class="teams-won">${escapeHtml(names)}</div>
+        <button class="danger" data-undo="${realIdx}">取消</button>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll("[data-undo]").forEach(btn => {
+      btn.onclick = () => {
+        const idx = parseInt(btn.dataset.undo);
+        const h = state.history[idx];
+        if (!h) return;
+        if (!confirm(`Q${h.q + 1} の加算を取り消しますか？`)) return;
+        h.teamIdxs.forEach(i => { state.teams[i].score -= h.points; });
+        state.history.splice(idx, 1);
+        save();
+        render();
+        openHistory();
+      };
+    });
+  }
+  document.getElementById("historyModal").classList.add("open");
+}
+
+// ---- Confetti ----
+function celebrate() {
+  const canvas = document.createElement("canvas");
+  canvas.className = "confetti";
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+
+  const colors = ["#ffd700", "#ff6b6b", "#4ecdc4", "#ffe66d", "#a8e6cf", "#ff8b94"];
+  const pieces = [];
+  for (let i = 0; i < 200; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width,
+      y: -20 - Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 4,
+      vy: 2 + Math.random() * 4,
+      size: 6 + Math.random() * 8,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * Math.PI * 2,
+      vRot: (Math.random() - 0.5) * 0.2,
+    });
+  }
+  let frames = 0;
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vRot;
+      p.vy += 0.05;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 360) requestAnimationFrame(loop);
+    else canvas.remove();
+  }
+  loop();
+}
+
+// ---- Reset ----
+function resetScores() {
+  if (!confirm("全チームのスコアと履歴をリセットしますか？")) return;
+  state.teams.forEach(t => { t.score = 0; });
+  state.history = [];
+  save();
+  render();
+}
+
+// ---- Modal helpers ----
+function closeAllModals() {
+  document.querySelectorAll(".modal-backdrop").forEach(m => m.classList.remove("open"));
+}
+
+// ---- Event bindings ----
+document.getElementById("btnSettings").onclick = openSettings;
+document.getElementById("btnReveal").onclick = openReveal;
+document.getElementById("btnHistory").onclick = openHistory;
+document.getElementById("btnReset").onclick = resetScores;
+document.getElementById("btnSettingsCancel").onclick = closeAllModals;
+document.getElementById("btnSettingsSave").onclick = saveSettings;
+document.getElementById("btnRevealCancel").onclick = closeAllModals;
+document.getElementById("btnRevealApply").onclick = applyReveal;
+document.getElementById("btnHistoryClose").onclick = closeAllModals;
+
+document.getElementById("teamCount").addEventListener("input", renderTeamsEdit);
+document.getElementById("questionCount").addEventListener("input", renderQuestionsEdit);
+document.getElementById("defaultPoints").addEventListener("input", renderQuestionsEdit);
+
+// Close modal on backdrop click
+document.querySelectorAll(".modal-backdrop").forEach(m => {
+  m.addEventListener("click", e => {
+    if (e.target === m) closeAllModals();
+  });
+});
+
+// Keyboard shortcuts
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeAllModals();
+  if (e.key === " " && !document.querySelector(".modal-backdrop.open") &&
+      !["INPUT","TEXTAREA","SELECT"].includes(document.activeElement.tagName)) {
+    e.preventDefault();
+    openReveal();
+  }
+});
+
+// ---- Start ----
+load();
+render();
+</script>
+</body>
+</html>

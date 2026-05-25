@@ -671,11 +671,61 @@
 
   /* ===== Confetti ===== */
   .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+
+  /* ===== Screen-share notices ===== */
+  #noShareNotice {
+    position: fixed;
+    bottom: 12px;
+    right: 14px;
+    font-size: 11px;
+    color: #b91c1c;
+    background: rgba(254, 242, 242, 0.95);
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid #fca5a5;
+    z-index: 998;
+    letter-spacing: 0.08em;
+    display: none;
+    pointer-events: none;
+  }
+  #noShareNotice.show { display: block; }
+
+  #startShareOverlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(22px, 3.6vw, 44px);
+    background: rgba(255, 255, 255, 0.98);
+    color: var(--rose);
+    padding: clamp(20px, 4vw, 36px) clamp(28px, 6vw, 60px);
+    border-radius: 14px;
+    border: 2px solid var(--accent);
+    box-shadow: 0 14px 50px rgba(44,21,56,0.25);
+    letter-spacing: 0.15em;
+    z-index: 1100;
+    display: none;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+  }
+  #startShareOverlay.show {
+    display: block;
+    animation: shareOverlay 3s ease-out forwards;
+  }
+  @keyframes shareOverlay {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.82); }
+    12%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    82%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+  }
 </style>
 </head>
 <body>
 
 <button id="restartBtn" class="ghost hidden">↺ 最初から</button>
+<div id="noShareNotice">⚠ 画面共有しないでください</div>
+<div id="startShareOverlay">📺 画面共有を開始してください</div>
 
 <!-- ============ Screen 1: Upload ============ -->
 <div id="screen-upload" class="screen active">
@@ -792,6 +842,20 @@ function showScreen(name) {
   const restart = document.getElementById("restartBtn");
   if (name === "upload") restart.classList.add("hidden");
   else restart.classList.remove("hidden");
+
+  // "Don't share" notice: shown only on pre-reveal screens
+  const noShare = document.getElementById("noShareNotice");
+  if (["upload", "loading", "confirm"].includes(name)) noShare.classList.add("show");
+  else noShare.classList.remove("show");
+
+  // "Start screen sharing" overlay: appears for 3s on ready screen
+  const overlay = document.getElementById("startShareOverlay");
+  overlay.classList.remove("show");
+  if (name === "ready") {
+    void overlay.offsetWidth; // force reflow to restart animation
+    overlay.classList.add("show");
+    setTimeout(() => overlay.classList.remove("show"), 3100);
+  }
 }
 
 function escapeHtml(s) {

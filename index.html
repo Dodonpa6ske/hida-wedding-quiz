@@ -1093,18 +1093,27 @@ async function runStackingAnimation() {
   const numQuestions = teams[0]?.scores.length || 0;
   if (numQuestions === 0) return;
 
-  // Pre-compute layout for blocks based on max total score
-  const maxTotal = Math.max(...teams.map(t => t.total));
-  if (maxTotal === 0) return;
+  // Reverse-calculate block size: 1st place's stack should fill the container.
+  // block height = container height / 1st place's pts
+  const firstPlacePts = Math.max(...teams.map(t => t.total));
+  if (firstPlacePts === 0) return;
 
   const sample = document.querySelector(".stack-container");
   const containerHeight = sample.clientHeight;
-  // Dynamic gap based on score density so all blocks fit within the container
-  const gap = maxTotal > 100 ? 0 : (maxTotal > 50 ? 1 : 2);
-  const totalGap = gap * Math.max(0, maxTotal - 1);
-  // Ensure all blocks fit; block can be as small as ~1px if needed
-  const blockHeight = Math.max(1, (containerHeight - totalGap) / maxTotal);
-  // Apply gap to the .stack containers
+
+  // Adaptive gap: chunky gaps when each block is big (low pt total),
+  // shrink to 0 when blocks are very thin (high pt total).
+  const blockHeightIdeal = containerHeight / firstPlacePts;
+  let gap;
+  if (blockHeightIdeal >= 30)      gap = 5;
+  else if (blockHeightIdeal >= 15) gap = 3;
+  else if (blockHeightIdeal >= 8)  gap = 2;
+  else if (blockHeightIdeal >= 4)  gap = 1;
+  else                              gap = 0;
+
+  const totalGap = gap * Math.max(0, firstPlacePts - 1);
+  const blockHeight = Math.max(1, (containerHeight - totalGap) / firstPlacePts);
+
   document.querySelectorAll("#stackingBoard .stack").forEach(el => {
     el.style.gap = gap + "px";
   });
